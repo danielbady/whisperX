@@ -133,10 +133,6 @@ For increased timestamp accuracy, at the cost of higher gpu mem, use bigger mode
     whisperx path/to/audio.wav --model large-v2 --align_model WAV2VEC2_ASR_LARGE_LV60K_960H --batch_size 4
 
 
-To label the transcript with speaker ID's (set number of speakers if known e.g. `--min_speakers 2` `--max_speakers 2`):
-
-    whisperx path/to/audio.wav --model large-v2 --diarize --highlight_words True
-
 To run on CPU instead of GPU (and for running on Mac OS X):
 
     whisperx path/to/audio.wav --compute_type int8
@@ -190,18 +186,6 @@ print(result["segments"]) # after alignment
 
 # delete model if low on GPU resources
 # import gc; gc.collect(); torch.cuda.empty_cache(); del model_a
-
-# 3. Assign speaker labels
-diarize_model = whisperx.DiarizationPipeline(use_auth_token=YOUR_HF_TOKEN, device=device)
-
-# add min/max number of speakers if known
-diarize_segments = diarize_model(audio)
-# diarize_model(audio, min_speakers=min_speakers, max_speakers=max_speakers)
-
-result = whisperx.assign_word_speakers(diarize_segments, result)
-print(diarize_segments)
-print(result["segments"]) # segments are now assigned speaker IDs
-```
 
 ## Demos 🚀
 

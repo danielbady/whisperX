@@ -13,7 +13,7 @@ from transformers.pipelines.pt_utils import PipelineIterator
 
 from whisperx.audio import N_SAMPLES, SAMPLE_RATE, load_audio, log_mel_spectrogram
 from whisperx.types import SingleSegment, TranscriptionResult
-from whisperx.vads import Vad, Silero, Pyannote
+from whisperx.vads import Vad, Silero
 
 
 def find_numeral_symbol_tokens(tokenizer):
@@ -209,13 +209,8 @@ class FasterWhisperPipeline(Pipeline):
                 yield {'inputs': audio[f1:f2]}
 
         # Pre-process audio and merge chunks as defined by the respective VAD child class 
-        # In case vad_model is manually assigned (see 'load_model') follow the functionality of pyannote toolkit
-        if issubclass(type(self.vad_model), Vad):
-            waveform = self.vad_model.preprocess_audio(audio)
-            merge_chunks =  self.vad_model.merge_chunks
-        else:
-            waveform = Pyannote.preprocess_audio(audio)
-            merge_chunks = Pyannote.merge_chunks
+        waveform = self.vad_model.preprocess_audio(audio)
+        merge_chunks =  self.vad_model.merge_chunks
 
         vad_segments = self.vad_model({"waveform": waveform, "sample_rate": SAMPLE_RATE})
         vad_segments = merge_chunks(
@@ -306,7 +301,7 @@ def load_model(
     asr_options: Optional[dict] = None,
     language: Optional[str] = None,
     vad_model: Optional[Vad]= None,
-    vad_method: Optional[str] = "pyannote",
+    vad_method: Optional[str] = "silero",
     vad_options: Optional[dict] = None,
     model: Optional[WhisperModel] = None,
     task="transcribe",
@@ -400,8 +395,6 @@ def load_model(
     else:
         if vad_method == "silero":
             vad_model = Silero(**default_vad_options)
-        elif vad_method == "pyannote":
-            vad_model = Pyannote(torch.device(device), use_auth_token=None, **default_vad_options)
         else:
             raise ValueError(f"Invalid vad_method: {vad_method}")
 
